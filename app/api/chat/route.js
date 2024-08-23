@@ -23,7 +23,7 @@ Tone and Style:
 - Professional and Efficient: Ensure responses are professional, relevant, and aimed at quickly resolving the user’s query.`;
 
 async function storeDocumentEmbedding(documentText, documentId, index) {
-    const openai = new OpenAI("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"); // Replace with your OpenAI API key
+    const openai = new OpenAI(process.env.OPENAI_API_KEY); // Use environment variable
 
     // Generate the embedding for the document
     const response = await openai.embeddings.create({
@@ -38,7 +38,7 @@ async function storeDocumentEmbedding(documentText, documentId, index) {
 }
 
 async function retrieveRelevantDocuments(queryText, index) {
-    const openai = new OpenAI("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"); // Replace with your OpenAI API key
+    const openai = new OpenAI(process.env.OPENAI_API_KEY); // Use environment variable
 
     // Generate the embedding for the user's query
     const response = await openai.embeddings.create({
@@ -60,7 +60,7 @@ async function retrieveRelevantDocuments(queryText, index) {
 
 // Handle a POST request to interact with the chatbot
 export async function POST(req) {
-    const openai = new OpenAI("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"); // Replace with your OpenAI API key
+    const openai = new OpenAI(process.env.OPENAI_API_KEY); // Use environment variable
     const data = await req.json();
 
     const queryText = data[data.length - 1].content;
