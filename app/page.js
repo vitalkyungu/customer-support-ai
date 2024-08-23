@@ -2,6 +2,7 @@
 
 import { Box, Stack, TextField, Button } from "@mui/material";
 import { useState } from "react";
+import Image from "next/image";
 
 export default function Home() {
   const [messages, setMessages] = useState([{
@@ -81,7 +82,18 @@ export default function Home() {
       flexDirection="column"
       justifyContent="center"
       alignItems="center"
+      
+      backgroundColor ="#f0f0f0"
+     
+      
     >
+       <Image
+        src="/Logo.png" // Assuming logo.png is in the public directory
+        alt="Custosuppo AI Logo"
+        width={400} // Adjust width as needed
+        height={300} // Adjust height as needed
+        //style={{ marginBottom: '0px' }} // Add some space below the logo
+      />
       <Stack
         direction="column"
         width="600px"
@@ -90,6 +102,7 @@ export default function Home() {
         p={2}
         spacing={3}
       >
+     
         <Stack
           direction="column"
           spacing={2}
@@ -124,6 +137,17 @@ export default function Home() {
           <Button variant="contained" onClick={sendMessage}>Send</Button>
         </Stack>
       </Stack>
+      <Box
+        component="footer"
+        width="100%"
+        textAlign="center"
+        mt={2}
+        p={2}
+        bgcolor="#333" // Dark background for footer
+        color="white"
+      >
+        All rights reserved. Made by Vital Kyungu
+      </Box>
     </Box>
   );
 }
