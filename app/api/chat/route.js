@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
-import { getIndex } from './pineconeClient'; // Import the function to get Pinecone index
+import { PineconeClient } from '@pinecone-database/pinecone';
 
 const systemPrompt = `System Prompt for Custosuppo-AI Customer Support Bot:
 
@@ -22,7 +22,25 @@ Tone and Style:
 - Clear and Concise: Communicate in a straightforward manner, avoiding unnecessary jargon or complex language.
 - Professional and Efficient: Ensure responses are professional, relevant, and aimed at quickly resolving the user’s query.`;
 
-async function storeDocumentEmbedding(documentText, documentId, index) {
+let index;
+
+async function initPinecone() {
+    const pinecone = new PineconeClient();
+    await pinecone.init({
+        apiKey: process.env.PINECONE_API_KEY, // Ensure this environment variable is set
+        environment: "us-east-1", // Replace with your actual environment
+    });
+    index = pinecone.Index("custosuppo-ai");
+}
+
+async function getIndex() {
+    if (!index) {
+        await initPinecone();
+    }
+    return index;
+}
+
+async function storeDocumentEmbedding(documentText, documentId) {
     const openai = new OpenAI(process.env.OPENAI_API_KEY); // Use environment variable
 
     // Generate the embedding for the document
@@ -33,11 +51,14 @@ async function storeDocumentEmbedding(documentText, documentId, index) {
 
     const embedding = response.data[0].embedding;
 
+    // Get Pinecone index
+    const index = await getIndex();
+
     // Store the embedding in Pinecone with the document ID
     await index.upsert([{ id: documentId, values: embedding }]);
 }
 
-async function retrieveRelevantDocuments(queryText, index) {
+async function retrieveRelevantDocuments(queryText) {
     const openai = new OpenAI(process.env.OPENAI_API_KEY); // Use environment variable
 
     // Generate the embedding for the user's query
@@ -47,6 +68,9 @@ async function retrieveRelevantDocuments(queryText, index) {
     });
 
     const queryEmbedding = response.data[0].embedding;
+
+    // Get Pinecone index
+    const index = await getIndex();
 
     // Query Pinecone for similar documents
     const queryResponse = await index.query({
@@ -65,11 +89,8 @@ export async function POST(req) {
 
     const queryText = data[data.length - 1].content;
 
-    // Get Pinecone index
-    const index = await getIndex();
-
     // Retrieve relevant documents from Pinecone
-    const relevantDocs = await retrieveRelevantDocuments(queryText, index);
+    const relevantDocs = await retrieveRelevantDocuments(queryText);
 
     // Combine relevant documents into the conversation context
     const completion = await openai.chat.completions.create({
@@ -110,5 +131,4 @@ export async function POST(req) {
 // Example: Store a document embedding (you can call this wherever appropriate)
 const documentText = "Your document or knowledge base text here.";
 const documentId = "document-id-1"; // Unique ID for the document
-const index = await getIndex(); // Ensure you call getIndex to get the Pinecone index
-await storeDocumentEmbedding(documentText, documentId, index);
+await storeDocumentEmbedding(documentText, documentId);
