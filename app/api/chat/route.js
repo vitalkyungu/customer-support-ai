@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
-import { PineconeClient } from '@pinecone-database/pinecone';
+import { Pinecone } from '@pinecone-database/pinecone';
 
 const systemPrompt = `System Prompt for Custosuppo-AI Customer Support Bot:
 
@@ -25,20 +25,23 @@ Tone and Style:
 let index;
 
 async function initPinecone() {
-    const pinecone = new PineconeClient();
-    await pinecone.init({
+    // Initialize the Pinecone client with options
+    const pinecone = new Pinecone({
         apiKey: process.env.PINECONE_API_KEY, // Ensure this environment variable is set
-        environment: "us-east-1", // Replace with your actual environment
+        //environment: "us-east-1", // Uncomment and replace with your actual environment if needed
     });
-    index = pinecone.Index("custosuppo-ai");
+
+    return pinecone; // Return the Pinecone client instance
 }
 
-async function getIndex() {
-    if (!index) {
-        await initPinecone();
-    }
-    return index;
+// Async function to initialize Pinecone client and index
+async function initializeIndex() {
+    const pinecone = await initPinecone(); // Initialize Pinecone client
+    index = pinecone.Index("custosuppo-ai"); // Set the index
 }
+
+// Call the function to initialize the index
+await initializeIndex(); // Ensure this is in an async context
 
 async function storeDocumentEmbedding(documentText, documentId) {
     const openai = new OpenAI(process.env.OPENAI_API_KEY); // Use environment variable
@@ -51,10 +54,7 @@ async function storeDocumentEmbedding(documentText, documentId) {
 
     const embedding = response.data[0].embedding;
 
-    // Get Pinecone index
-    const index = await getIndex();
-
-    // Store the embedding in Pinecone with the document ID
+    // Use the initialized index directly
     await index.upsert([{ id: documentId, values: embedding }]);
 }
 
@@ -69,10 +69,7 @@ async function retrieveRelevantDocuments(queryText) {
 
     const queryEmbedding = response.data[0].embedding;
 
-    // Get Pinecone index
-    const index = await getIndex();
-
-    // Query Pinecone for similar documents
+    // Use the initialized index directly
     const queryResponse = await index.query({
         topK: 5, // Number of top similar documents to retrieve
         vector: queryEmbedding,
@@ -98,13 +95,16 @@ export async function POST(req) {
             { role: 'system', content: systemPrompt },
             ...data,
             ...relevantDocs.map(doc => ({
-                role: 'assistant', 
-                content: doc.metadata.text || 'Here is some relevant information based on your query.'
+                role: 'assistant',
+                content: (doc.metadata && doc.metadata.text) 
+                         ? doc.metadata.text 
+                         : 'Here is some relevant information based on your query.'
             }))
         ],
         model: 'gpt-4o-mini',
         stream: true
     });
+    
 
     const stream = new ReadableStream({
         async start(controller) {
