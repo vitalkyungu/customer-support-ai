@@ -7,7 +7,7 @@ import { useState } from "react";
 export default function Home() {
   const [messages, setMessages] = useState([{
     role:'assistant',
-    content:`Howdy! I am the HeadStarter Support Agent, how can i assist you today ?`,
+    content:`Howdy! I am the Custosuppo-Ai Support Agent, how can i assist you today ?`,
   },])
 
   const [message, setMessage] = useState('')
