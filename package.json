@@ -15,11 +15,12 @@
     "@pinecone-database/pinecone": "^3.0.1",
     "debug": "^4.3.1",
     "next": "14.2.5",
+    "node-fetch": "^3.3.2",
     "openai": "^4.55.5",
     "react": "^18",
     "react-dom": "^18",
-    "uuid": "^8.3.2",
-    "vercel": "^37.1.0"
+    "uuid": "^10.0.0",
+    "vercel": "^32.3.0"
   },
   "devDependencies": {
     "eslint": "^8",

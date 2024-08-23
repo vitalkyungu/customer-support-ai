@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { Pinecone } from '@pinecone-database/pinecone';
+import fetch from 'node-fetch';
+
+if (!global.fetch) {
+    global.fetch = fetch;
+  }
+
 
 const systemPrompt = `System Prompt for Custosuppo-AI Customer Support Bot:
 
